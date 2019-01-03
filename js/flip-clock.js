@@ -169,6 +169,8 @@ FlipClock.Cell = function (options) {
     if (this.audioURL) {
         this.audio = new Audio(this.audioURL);
         this.element.appendChild(this.audio);
+        // this.audio.src = this.audioURL;
+        // this.audio.load();
     }
 
     if (!FlipClock.whichTransitionEvent) {
@@ -244,7 +246,12 @@ FlipClock.Cell.prototype.flip = function () {
         if (this.audio) {
             this.audio.pause();
             this.audio.load();
-            this.audio.play();
+            var promise = this.audio.play();
+            promise.then(function () {
+                // do nothing
+            }.bind(this)).catch(function (error) {
+                // do nothing
+            }.bind(this));
         }
         this.rotator.classList.remove('visible');
         this.obverseText.textContent = this.strings[this.stateFrame];
