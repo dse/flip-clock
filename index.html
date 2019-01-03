@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+        <title>Flip Clock</title>
+        <!-- <link rel="canonical" href="..."> -->
+        <link rel="stylesheet" href="css/flip-clock.css">
+        <link rel="stylesheet" href="css/flip-clock-theme.css">
+        <style>
+            body {
+                color: white;
+                background-color: black;
+            }
+        </style>
+    </head>
+    <body>
+
+        <h1>
+            Flip Clock
+        </h1>
+
+        <div class="flip-clock" id="flip-clock">
+        </div>
+
+        <script src="js/flip-clock.js"></script>
+
+        <script>
+            var fc = new FlipClock({
+                element: document.getElementById('flip-clock'),
+                // twentyFourHour: true,
+                seconds: true
+            });
+        </script>
+
+    </body>
+</html>
