@@ -58,15 +58,22 @@
 .flip-clock-rotator.down > .obverse {
     transform:         rotateX(180deg);
     -webkit-transform: rotateX(180deg);
-    transition:         transform 0.1s ease-in;
-    -webkit-transition: transform 0.1s ease-in;
 }
 .flip-clock-rotator.down > .reverse {
     transform:         rotateX(360deg);
     -webkit-transform: rotateX(360deg);
-    transition:         transform 0.1s ease-in;
-    -webkit-transition: transform 0.1s ease-in;
 }
+.flip-clock-rotator.down > .obverse,
+.flip-clock-rotator.down > .reverse {
+    transition:         transform 0.15s ease-in;
+    -webkit-transition: transform 0.15s ease-in;
+}
+.flip-clock-cell.rushing .flip-clock-rotator.down > .obverse,
+.flip-clock-cell.rushing .flip-clock-rotator.down > .reverse {
+    transition:         transform 0.05s ease-in;
+    -webkit-transition: transform 0.05s ease-in;
+}
+
 .flip-clock-rotator > * > .inner {
     width: 100%;
     display: inline-block;

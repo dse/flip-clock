@@ -224,11 +224,15 @@ FlipClock.Cell.prototype.set24HourStrings = function () {
 FlipClock.Cell.prototype.flip = function () {
     if (this.stateFrame === this.state) {
         this.busy = false;
+        this.element.classList.remove('rushing');
         return;
     }
     console.log(this.stateFrame, '->', this.state);
     requestAnimationFrame(function () {
         this.nextStateFrame = (this.stateFrame + 1) % this.numStates;
+        if (this.nextStateFrame !== this.state) {
+            this.element.classList.add('rushing');
+        }
         this.rotator.classList.remove('visible');
         this.obverseText.textContent = this.strings[this.stateFrame];
         this.reverseText.textContent = this.strings[this.nextStateFrame];
