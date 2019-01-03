@@ -30,7 +30,8 @@ FlipClock.prototype.initializeElements = function () {
     this.cells.hours = new FlipClock.Cell({
         numStates: 24,
         debug: true,
-        hoursMode: this.twentyFourHour ? 24 : 12
+        hoursMode: this.twentyFourHour ? 24 : 12,
+        audioURL: this.audioURL
     });
 
     this.element.appendChild(this.cells.hours.element);
@@ -38,7 +39,8 @@ FlipClock.prototype.initializeElements = function () {
     this.colons.minutes = new FlipClock.Text(':');
     this.cells.minutes = new FlipClock.Cell({
         numDigits: 2,
-        numStates: 60
+        numStates: 60,
+        audioURL: this.audioURL
     });
 
     this.element.appendChild(this.colons.minutes.element);
@@ -48,7 +50,8 @@ FlipClock.prototype.initializeElements = function () {
         this.colons.seconds = new FlipClock.Text(':');
         this.cells.seconds = new FlipClock.Cell({
             numDigits: 2,
-            numStates: 60
+            numStates: 60,
+            audioURL: this.audioURL
         });
         this.element.appendChild(this.colons.seconds.element);
         this.element.appendChild(this.cells.seconds.element);
@@ -163,6 +166,11 @@ FlipClock.Cell = function (options) {
     this.obverseInner.appendChild(this.obverseIndicator);
     this.reverseInner.appendChild(this.reverseIndicator);
 
+    if (this.audioURL) {
+        this.audio = new Audio(this.audioURL);
+        this.element.appendChild(this.audio);
+    }
+
     if (!FlipClock.whichTransitionEvent) {
         var e = document.createElement('fakeelement');
         if (e.style.transition !== undefined) {
@@ -232,6 +240,11 @@ FlipClock.Cell.prototype.flip = function () {
         this.nextStateFrame = (this.stateFrame + 1) % this.numStates;
         if (this.nextStateFrame !== this.state) {
             this.element.classList.add('rushing');
+        }
+        if (this.audio) {
+            this.audio.pause();
+            this.audio.load();
+            this.audio.play();
         }
         this.rotator.classList.remove('visible');
         this.obverseText.textContent = this.strings[this.stateFrame];
