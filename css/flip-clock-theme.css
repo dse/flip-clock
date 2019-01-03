@@ -1,0 +1,30 @@
+.flip-clock {
+    font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
+    font-size: 10vw;
+    line-height: 1.2;
+    background-color: #333333;
+    color: white;
+    text-align: center;
+    padding-top: 0.25em;
+    padding-bottom: 0.25em;
+}
+.flip-clock-cell {
+    border: 0.0625em solid transparent;
+    background-color: black;
+    border-radius: 0.25em;
+    width: 1.6em;               /* adjust based on font */
+}
+.flip-clock-flap {
+    background-color: #222266;
+    color: #ccccff;
+    border-radius: 0.2em;
+}
+.flip-clock-text {
+    padding-left: 0.1em;
+    padding-right: 0.1em;
+}
+.flip-clock-flap .indicator {
+    bottom: 18%;                /* adjust based on font */
+    left: 8%;                   /* adjust based on font */
+    font-size: 0.15em;          /* adjust based on taste */
+}
