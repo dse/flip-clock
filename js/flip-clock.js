@@ -14,6 +14,7 @@ var FlipClock = function (options) {
     }
     this.empty();
     this.initializeElements();
+    this.run();
 };
 
 FlipClock.prototype.empty = function () {
@@ -54,6 +55,31 @@ FlipClock.prototype.initializeElements = function () {
     }
 };
 
+FlipClock.prototype.run = function () {
+    var date = this.update();
+    var msec = 1000 - date.getMilliseconds();
+    this.timeout = setTimeout(this.run.bind(this), msec);
+};
+
+FlipClock.prototype.stop = function () {
+    if (this.timeout) {
+        var timeout = this.timeout;
+        delete this.timeout;
+        clearTimeout(timeout);
+    }
+};
+
+FlipClock.prototype.update = function () {
+    var date = new Date();
+    var hours = date.getHours();
+    var minutes = date.getMinutes();
+    var seconds = date.getSeconds();
+    this.cells.hours.setState(hours);
+    this.cells.minutes.setState(minutes);
+    this.cells.seconds.setState(seconds);
+    return date;
+};
+
 FlipClock.Cell = function (options) {
     var i, key;
     this.element = document.createElement('span');
@@ -68,6 +94,7 @@ FlipClock.Cell = function (options) {
     }
     if (!('state' in this)) {
         this.state = 0;
+        this.stateFrame = 0;
     }
     if (!('strings' in this)) {
         if (this.hoursMode === 24) {
@@ -79,6 +106,8 @@ FlipClock.Cell = function (options) {
         }
     }
 
+    this.busy = false;
+
     this.topFlap = document.createElement('span');
     this.topFlap.classList.add('flip-clock-flap',
                                'flip-clock-static-flap',
@@ -89,12 +118,12 @@ FlipClock.Cell = function (options) {
                                   'flip-clock-bottom-flap');
     this.topFlapText = document.createElement('span');
     this.bottomFlapText = document.createElement('span');
-    this.topFlapText.textContent = this.strings[this.state];
-    this.bottomFlapText.textContent = this.strings[this.state];
+    this.topFlapText.textContent = this.strings[this.stateFrame];
+    this.bottomFlapText.textContent = this.strings[this.stateFrame];
     this.topFlapIndicator = document.createElement('span');
     this.bottomFlapIndicator = document.createElement('span');
-    this.topFlapIndicator.textContent = this.indicators ? this.indicators[this.state] : '';
-    this.bottomFlapIndicator.textContent = this.indicators ? this.indicators[this.state] : '';
+    this.topFlapIndicator.textContent = this.indicators ? this.indicators[this.stateFrame] : '';
+    this.bottomFlapIndicator.textContent = this.indicators ? this.indicators[this.stateFrame] : '';
     this.topFlapIndicator.classList.add('indicator');
     this.bottomFlapIndicator.classList.add('indicator');
 
@@ -104,7 +133,6 @@ FlipClock.Cell = function (options) {
     this.bottomFlap.appendChild(this.bottomFlapText);
     this.topFlap.appendChild(this.topFlapIndicator);
     this.bottomFlap.appendChild(this.bottomFlapIndicator);
-
 
     this.rotator = document.createElement('span');
     this.rotator.classList.add('flip-clock-rotator');
@@ -147,10 +175,6 @@ FlipClock.Cell = function (options) {
             FlipClock.whichTransitionEvent = 'webkitTransitionEnd';
         }
     }
-
-    setTimeout(function () {
-        this.flipToNext();
-    }.bind(this), 1000);
 };
 
 FlipClock.Cell.prototype.setNumericStrings = function () {
@@ -164,10 +188,10 @@ FlipClock.Cell.prototype.setNumericStrings = function () {
         this.strings.push(s);
     }
     if (this.topFlapText) {
-        this.topFlapText.textContent    = this.strings[this.state];
-        this.bottomFlapText.textContent = this.strings[this.state];
-        this.topFlapIndicator.textContent    = this.indicators ? this.indicators[this.state] : '';
-        this.bottomFlapIndicator.textContent = this.indicators ? this.indicators[this.state] : '';
+        this.topFlapText.textContent    = this.strings[this.stateFrame];
+        this.bottomFlapText.textContent = this.strings[this.stateFrame];
+        this.topFlapIndicator.textContent    = this.indicators ? this.indicators[this.stateFrame] : '';
+        this.bottomFlapIndicator.textContent = this.indicators ? this.indicators[this.stateFrame] : '';
     }
 };
 
@@ -197,36 +221,48 @@ FlipClock.Cell.prototype.set24HourStrings = function () {
     this.setNumericStrings();
 };
 
-FlipClock.Cell.prototype.flipToNext = function () {
+FlipClock.Cell.prototype.flip = function () {
+    if (this.stateFrame === this.state) {
+        this.busy = false;
+        return;
+    }
+    console.log(this.stateFrame, '->', this.state);
     requestAnimationFrame(function () {
-        this.nextState = (this.state + 1) % this.numStates;
+        this.nextStateFrame = (this.stateFrame + 1) % this.numStates;
         this.rotator.classList.remove('visible');
-        this.obverseText.textContent = this.strings[this.state];
-        this.reverseText.textContent = this.strings[this.nextState];
-        this.obverseIndicator.textContent = this.indicators ? this.indicators[this.state]     : '';
-        this.reverseIndicator.textContent = this.indicators ? this.indicators[this.nextState] : '';
+        this.obverseText.textContent = this.strings[this.stateFrame];
+        this.reverseText.textContent = this.strings[this.nextStateFrame];
+        this.obverseIndicator.textContent = this.indicators ? this.indicators[this.stateFrame]     : '';
+        this.reverseIndicator.textContent = this.indicators ? this.indicators[this.nextStateFrame] : '';
         this.rotator.classList.remove('down');
         this.rotator.classList.add('visible');
-        this.topFlapText.textContent = this.strings[this.nextState];
-        this.topFlapIndicator.textContent = this.indicators ? this.indicators[this.nextState] : '';
+        this.topFlapText.textContent = this.strings[this.nextStateFrame];
+        this.topFlapIndicator.textContent = this.indicators ? this.indicators[this.nextStateFrame] : '';
         var complete = function () {
-            this.bottomFlapText.textContent = this.strings[this.nextState];
-            this.bottomFlapIndicator.textContent = this.indicators ? this.indicators[this.nextState] : '';
+            this.bottomFlapText.textContent = this.strings[this.nextStateFrame];
+            this.bottomFlapIndicator.textContent = this.indicators ? this.indicators[this.nextStateFrame] : '';
             this.rotator.classList.remove('visible');
             this.rotator.classList.remove('down');
-            this.state = this.nextState;
+            this.stateFrame = this.nextStateFrame;
         }.bind(this);
-
         var once;
         once = function () {
             this.rotator.removeEventListener(FlipClock.whichTransitionEvent, once);
             complete();
-            requestAnimationFrame(this.flipToNext.bind(this));
+            requestAnimationFrame(this.flip.bind(this));
         }.bind(this);
-
         this.rotator.addEventListener(FlipClock.whichTransitionEvent, once);
         this.rotator.classList.add('down');
     }.bind(this));
+};
+
+FlipClock.Cell.prototype.setState = function (state) {
+    this.state = state;
+    if (this.busy) {
+        return;
+    }
+    this.busy = true;
+    this.flip();
 };
 
 FlipClock.Text = function (options) {
