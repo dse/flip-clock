@@ -220,8 +220,6 @@ FlipClock.Cell = function (options) {
     if (this.audioURL) {
         this.audio = new Audio(this.audioURL);
         this.element.appendChild(this.audio);
-        // this.audio.src = this.audioURL;
-        // this.audio.load();
     }
 
     if (!FlipClock.whichTransitionEvent) {
@@ -280,8 +278,6 @@ FlipClock.Cell.prototype.tick = function () {
     if (!this.audio) {
         return;
     }
-    this.audio.pause();
-    this.audio.load();
     var promise = this.audio.play();
     promise.then(function () {
         // do nothing
