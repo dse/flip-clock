@@ -24,14 +24,49 @@
         <div class="flip-clock" id="flip-clock">
         </div>
 
-        <script src="js/flip-clock.js"></script>
+        <div class="flip-clock-controls">
+
+            <label>
+                <input type="checkbox" name="is-24-hour">
+                24-hour time
+            </label>
+
+            <label>
+                <input type="checkbox" name="has-seconds" checked>
+                Show seconds
+            </label>
+
+            <label>
+                <input type="checkbox" name="has-audio" checked>
+                Audio
+            </label>
+
+        </div>
+
+        <script src="js/flip-clock.js?cachebuster=1"></script>
 
         <script>
+            var checkboxIs24Hour   = document.querySelector('[type="checkbox"][name="is-24-hour"]');
+            var checkboxHasSeconds = document.querySelector('[type="checkbox"][name="has-seconds"]');
+            var checkboxHasAudio   = document.querySelector('[type="checkbox"][name="has-audio"]');
+
             var fc = new FlipClock({
                 element: document.getElementById('flip-clock'),
                 // twentyFourHour: true,
-                seconds: true,
+                is24Hour: checkboxIs24Hour.checked,
+                hasSeconds: checkboxHasSeconds.checked,
+                hasAudio: checkboxHasAudio.checked,
                 audioURL: 'sounds/tick.wav'
+            });
+
+            checkboxIs24Hour.addEventListener('change', function () {
+                console.log(fc.setIs24Hour(checkboxIs24Hour.checked));
+            });
+            checkboxHasSeconds.addEventListener('change', function () {
+                console.log(fc.setHasSeconds(checkboxHasSeconds.checked));
+            });
+            checkboxHasAudio.addEventListener('change', function () {
+                console.log(fc.setHasAudio(checkboxHasAudio.checked));
             });
         </script>
 

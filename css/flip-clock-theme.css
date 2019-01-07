@@ -24,8 +24,8 @@
     margin-left: 0.0625em;
 }
 .flip-clock-flap {
-    background-color: #222266;
-    color: #ccccff;
+    background-color: #ff3333;
+    color: #ffffcc;
     border-radius: 0.1875em;    /* A */
 }
 .flip-clock-text {
@@ -36,4 +36,16 @@
     bottom: 18%;                /* adjust based on font */
     left: 8%;                   /* adjust based on font */
     font-size: 0.15em;          /* adjust based on taste */
+}
+
+.flip-clock-controls {
+    background-color: #333333;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    text-align: center;
+}
+.flip-clock-controls label {
+    white-space: nowrap;
+    margin-left: 1rem;
+    margin-right: 1rem;
 }
