@@ -3,6 +3,8 @@ var FlipClock = function (options) {
     this.element = undefined;
     this.seconds = false;
     this.twentyFourHour = false;
+    this.hasOneFlipWindow = false;
+    this.hasColons = true;
     if (options instanceof HTMLElement) {
         this.element = options;
     } else if (options instanceof Object) {
@@ -23,39 +25,81 @@ FlipClock.prototype.empty = function () {
     }
 };
 
-FlipClock.prototype.initializeElements = function () {
-    this.colons = {};
-    this.cells = {};
-
+FlipClock.prototype.initializeHoursElements = function () {
     this.cells.hours = new FlipClock.Cell({
         numStates: 24,
         debug: true,
         hoursMode: this.twentyFourHour ? 24 : 12,
         audioURL: this.audioURL
     });
+    if (this.hasOneFlipWindow) {
+        this.flipWindow.appendChild(this.cells.hours.element);
+    } else {
+        this.hoursFlipWindow = document.createElement('span');
+        this.hoursFlipWindow.classList.add('flip-clock-window');
+        this.hoursFlipWindow.appendChild(this.cells.hours.element);
+        this.element.appendChild(this.hoursFlipWindow);
+    }
+};
 
-    this.element.appendChild(this.cells.hours.element);
-
-    this.colons.minutes = new FlipClock.Text(':');
+FlipClock.prototype.initializeMinutesElements = function () {
     this.cells.minutes = new FlipClock.Cell({
         numDigits: 2,
         numStates: 60,
         audioURL: this.audioURL
     });
+    if (this.hasOneFlipWindow) {
+        this.flipWindow.appendChild(this.cells.minutes.element);
+    } else {
+        this.minutesFlipWindow = document.createElement('span');
+        this.minutesFlipWindow.classList.add('flip-clock-window');
+        this.minutesFlipWindow.appendChild(this.cells.minutes.element);
 
-    this.element.appendChild(this.colons.minutes.element);
-    this.element.appendChild(this.cells.minutes.element);
-
-    if (this.seconds) {
-        this.colons.seconds = new FlipClock.Text(':');
-        this.cells.seconds = new FlipClock.Cell({
-            numDigits: 2,
-            numStates: 60,
-            audioURL: this.audioURL
-        });
-        this.element.appendChild(this.colons.seconds.element);
-        this.element.appendChild(this.cells.seconds.element);
+        if (this.hasColons) {
+            this.colons.minutes = new FlipClock.Text(':');
+            this.element.appendChild(this.colons.minutes.element);
+        }
+        this.element.appendChild(this.minutesFlipWindow);
     }
+};
+
+FlipClock.prototype.initializeSecondsElements = function () {
+    this.cells.seconds = new FlipClock.Cell({
+        numDigits: 2,
+        numStates: 60,
+        audioURL: this.audioURL
+    });
+    if (!this.seconds) {
+        return;
+    }
+    if (this.hasOneFlipWindow) {
+        this.flipWindow.appendChild(this.cells.seconds.element);
+    } else {
+        this.secondsFlipWindow = document.createElement('span');
+        this.secondsFlipWindow.classList.add('flip-clock-window');
+        this.secondsFlipWindow.appendChild(this.cells.seconds.element);
+
+        if (this.hasColons) {
+            this.colons.seconds = new FlipClock.Text(':');
+            this.element.appendChild(this.colons.seconds.element);
+        }
+        this.element.appendChild(this.secondsFlipWindow);
+    }
+};
+
+FlipClock.prototype.initializeElements = function () {
+    this.colons = {};
+    this.cells = {};
+
+    if (this.hasOneFlipWindow) {
+        this.flipWindow = document.createElement('span');
+        this.flipWindow.classList.add('flip-clock-window');
+        this.element.appendChild(this.flipWindow);
+    }
+
+    this.initializeHoursElements();
+    this.initializeMinutesElements();
+    this.initializeSecondsElements();
 };
 
 FlipClock.prototype.run = function () {
@@ -77,9 +121,16 @@ FlipClock.prototype.update = function () {
     var hours = date.getHours();
     var minutes = date.getMinutes();
     var seconds = date.getSeconds();
-    this.cells.hours.setState(hours);
-    this.cells.minutes.setState(minutes);
-    this.cells.seconds.setState(seconds);
+    var delay = 0;
+    var changedHours = this.cells.hours.setState(hours, delay);
+    if (changedHours) {
+        delay += 5;
+    }
+    var changedMinutes = this.cells.minutes.setState(minutes, delay);
+    if (changedMinutes) {
+        delay += 5;
+    }
+    var changedSeconds = this.cells.seconds.setState(seconds, delay);
     return date;
 };
 
@@ -190,9 +241,6 @@ FlipClock.Cell = function (options) {
 FlipClock.Cell.prototype.setNumericStrings = function () {
     var i, s;
     this.strings = [];
-    if (this.debug) {
-        console.log(this.numDigits);
-    }
     for (i = 0; i < this.numStates; i += 1) {
         s = FlipClock.Util.pad(i, this.numDigits);
         this.strings.push(s);
@@ -225,33 +273,40 @@ FlipClock.Cell.prototype.set12HourStrings = function () {
 FlipClock.Cell.prototype.set24HourStrings = function () {
     delete this.indicators;
     this.numDigits = 2;
-    if (this.debug) {
-        console.log('A', this.numDigits);
-    }
     this.setNumericStrings();
 };
 
-FlipClock.Cell.prototype.flip = function () {
+FlipClock.Cell.prototype.tick = function () {
+    if (!this.audio) {
+        return;
+    }
+    this.audio.pause();
+    this.audio.load();
+    var promise = this.audio.play();
+    promise.then(function () {
+        // do nothing
+    }.bind(this)).catch(function (error) {
+        // do nothing
+    }.bind(this));
+};
+
+FlipClock.Cell.prototype.flip = function (delay) {
     if (this.stateFrame === this.state) {
         this.busy = false;
         this.element.classList.remove('rushing');
         return;
     }
-    console.log(this.stateFrame, '->', this.state);
+    if (delay) {
+        setTimeout(this.flip.bind(this, 0), delay);
+        return;
+    }
     requestAnimationFrame(function () {
         this.nextStateFrame = (this.stateFrame + 1) % this.numStates;
         if (this.nextStateFrame !== this.state) {
             this.element.classList.add('rushing');
         }
         if (this.audio) {
-            this.audio.pause();
-            this.audio.load();
-            var promise = this.audio.play();
-            promise.then(function () {
-                // do nothing
-            }.bind(this)).catch(function (error) {
-                // do nothing
-            }.bind(this));
+            this.tick();
         }
         this.rotator.classList.remove('visible');
         this.obverseText.textContent = this.strings[this.stateFrame];
@@ -273,20 +328,22 @@ FlipClock.Cell.prototype.flip = function () {
         once = function () {
             this.rotator.removeEventListener(FlipClock.whichTransitionEvent, once);
             complete();
-            requestAnimationFrame(this.flip.bind(this));
+            requestAnimationFrame(this.flip.bind(this, 0));
         }.bind(this);
         this.rotator.addEventListener(FlipClock.whichTransitionEvent, once);
         this.rotator.classList.add('down');
     }.bind(this));
 };
 
-FlipClock.Cell.prototype.setState = function (state) {
+FlipClock.Cell.prototype.setState = function (state, delay) {
+    var changed = (state !== this.state);
     this.state = state;
     if (this.busy) {
         return;
     }
     this.busy = true;
-    this.flip();
+    this.flip(delay);
+    return changed;
 };
 
 FlipClock.Text = function (options) {

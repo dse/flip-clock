@@ -1,23 +1,32 @@
 .flip-clock {
     font-family: 'Helvetica Neue', 'Helvetica', 'Arial', sans-serif;
-    font-size: 10vw;
-    line-height: 1.2;
+    font-size: 12.5vw;          /* adjust based on font and taste */
+    line-height: 1.1;
     background-color: #333333;
     color: white;
     text-align: center;
     padding-top: 0.25em;
     padding-bottom: 0.25em;
 }
-.flip-clock-cell {
-    border: 0.0625em solid transparent;
+.flip-clock-window {
+    border: 0.0625em solid transparent; /* B */
     background-color: black;
-    border-radius: 0.25em;
-    width: 1.6em;               /* adjust based on font */
+    border-radius: 0.25em;      /* A + B */
+    display: inline-block;
+}
+.flip-clock-window + .flip-clock-window {
+    margin-left: 0.125em;
+}
+.flip-clock-cell {
+    width: 1.5em;               /* adjust based on font */
+}
+.flip-clock-cell + .flip-clock-cell {
+    margin-left: 0.0625em;
 }
 .flip-clock-flap {
     background-color: #222266;
     color: #ccccff;
-    border-radius: 0.2em;
+    border-radius: 0.1875em;    /* A */
 }
 .flip-clock-text {
     padding-left: 0.1em;
